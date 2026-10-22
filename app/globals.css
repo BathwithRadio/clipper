@@ -103,3 +103,61 @@ a {
   border-color: #e2e8f0 !important;
   box-shadow: 0 28px 80px rgb(38 46 77 / 12%) !important;
 }
+
+/* Dark mode. Components use hardcoded hex utilities, so remap them here.
+   Unlayered rules win over Tailwind's utilities layer. */
+:root {
+  --clipper-ink: #0a2540;
+}
+
+.dark {
+  --clipper-ink: #e6edf7;
+}
+
+.dark body {
+  background: #0b1220;
+  color: #e6edf7;
+}
+
+.dark .bg-\[\#f7f9fc\] { background-color: #0b1220; }
+.dark .bg-white { background-color: #111a2e; }
+.dark .bg-white\/95 { background-color: rgb(17 26 46 / 95%); }
+.dark .bg-\[\#0a2540\] { background-color: #1b2a48; }
+.dark .hover\:bg-\[\#f7f9fc\]:hover { background-color: #16233d; }
+
+.dark .text-\[\#0a2540\] { color: #e6edf7; }
+.dark .text-\[\#425466\] { color: #a9b6c8; }
+.dark .text-\[\#53627a\] { color: #a0aec0; }
+.dark .text-\[\#8898aa\] { color: #7c8aa0; }
+.dark .hover\:text-\[\#635bff\]:hover { color: #8f88ff; }
+
+.dark .border-\[\#dbe3ef\],
+.dark .border-\[\#e6ebf1\],
+.dark .border-\[\#d9e2ec\] { border-color: #22304a; }
+.dark .divide-\[\#e6ebf1\] > :not(:last-child) { border-color: #22304a; }
+
+.dark .bg-\[\#e7f8f1\] { background-color: #0f3a2e; }
+.dark .text-\[\#08775d\] { color: #5fd3ab; }
+.dark .border-\[\#bfe8db\] { border-color: #1d5c49; }
+.dark .bg-\[\#eef1ff\] { background-color: #1e2550; }
+.dark .text-\[\#4353a3\] { color: #a9b4ff; }
+.dark .border-\[\#cbd8ff\] { border-color: #2f3a78; }
+.dark .bg-\[\#fff0ef\],
+.dark .bg-\[\#fff3f0\] { background-color: #3d1a18; }
+.dark .text-\[\#9f3f38\],
+.dark .text-\[\#8f3d30\] { color: #f2a59e; }
+.dark .border-\[\#f3c4c0\],
+.dark .border-\[\#f3aaa0\] { border-color: #6b2c27; }
+.dark .bg-\[\#fff8dc\] { background-color: #3a3010; }
+.dark .text-\[\#775d13\] { color: #e8cd7a; }
+.dark .border-\[\#e4d5a3\] { border-color: #5e4e1c; }
+
+.dark .clipper-booking--prism {
+  border-color: #22304a;
+  background: #0e1628;
+}
+
+.dark .clipper-booking--prism > div > div:last-child {
+  border-color: #22304a !important;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 40%) !important;
+}

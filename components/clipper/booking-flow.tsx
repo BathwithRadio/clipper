@@ -81,7 +81,7 @@ function mergeOptions(current: BookingOptionsResponse, incoming: Partial<Booking
   };
 }
 
-export function BookingFlow({ sectionId = "book", variant = "prism", theme = { ink: "#0a2540", accent: "#635bff" } }: { sectionId?: string; variant?: "prism"; theme?: { ink: string; accent: string } }) {
+export function BookingFlow({ sectionId = "book", variant = "prism", theme = { ink: "var(--clipper-ink)", accent: "#635bff" } }: { sectionId?: string; variant?: "prism"; theme?: { ink: string; accent: string } }) {
   const fallbackOptions: BookingOptionsResponse = {
     packages: [
       { id: "pkg_bath_brush", name: "Bath & Brush", description: "A refreshing bath, blow dry, brush-out, and nail trim.", durationMinutes: 60, priceCents: 65000 },

@@ -1,6 +1,7 @@
 "use client";
 
 import { BookingFlow } from "@/components/clipper/booking-flow";
+import { ThemeToggle } from "@/components/clipper/theme-toggle";
 
 export function PrismaticFlowHome() {
   return (
@@ -9,7 +10,7 @@ export function PrismaticFlowHome() {
         <div aria-hidden="true" className="absolute -right-[22rem] -top-[34rem] -z-10 h-[70rem] w-[65rem] rotate-[28deg] bg-[linear-gradient(135deg,#ffdb80_4%,#ff8f70_28%,#d783ff_52%,#7a73ff_72%,#68d5ff_92%)] opacity-90 blur-[2px]" />
         <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-12">
           <a href="#" className="text-2xl font-black tracking-[-0.07em]">clipper</a>
-          <nav className="flex items-center gap-3 sm:gap-6"><a href="/appointments" className="text-sm font-semibold text-[#0a2540] hover:text-[#635bff]">Appointments</a><a href="#book-prism" className="rounded-full bg-[#635bff] px-4 py-2.5 text-sm font-bold !text-white shadow-[0_6px_18px_rgba(99,91,255,.25)] hover:bg-[#0a2540] sm:px-5">Book a visit ›</a></nav>
+          <nav className="flex items-center gap-3 sm:gap-6"><ThemeToggle /><a href="/appointments" className="text-sm font-semibold text-[#0a2540] hover:text-[#635bff]">Appointments</a><a href="#book-prism" className="rounded-full bg-[#635bff] px-4 py-2.5 text-sm font-bold !text-white shadow-[0_6px_18px_rgba(99,91,255,.25)] hover:bg-[#0a2540] sm:px-5">Book a visit ›</a></nav>
         </header>
 
         <section className="mx-auto grid min-h-[44rem] max-w-7xl items-center gap-12 px-5 pb-24 pt-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:px-12 lg:pb-32 lg:pt-24">
