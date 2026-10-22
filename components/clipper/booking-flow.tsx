@@ -39,7 +39,7 @@ function groupSlots(rawSlots: BookingSlot[]) {
   return { slots, groups };
 }
 
-export function BookingFlow({ options, sectionId = "book", theme = { ink: "#0a2540", accent: "#635bff" } }: { options: BookingOption; sectionId?: string; theme?: { ink: string; accent: string } }) {
+export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(--clipper-ink)", accent: "#635bff" } }: { options: BookingOption; sectionId?: string; theme?: { ink: string; accent: string } }) {
   const router = useRouter();
   const [petName, setPetName] = useState("");
   const [petBreed, setPetBreed] = useState("");
