@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { after } from "next/server";
 
 import {
   appointments,
@@ -126,7 +127,7 @@ export async function POST(request: Request) {
   });
 
   // log it, don't make the customer wait for it
-  Promise.resolve().then(() => {
+  after(() => {
     console.info("Clipper booking created", {
       bookingReference,
       petName: petName.trim(),

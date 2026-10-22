@@ -1,5 +1,3 @@
-"use client";
-
 import {
   CalendarDays,
   Check,
@@ -11,6 +9,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { formatPrice } from "@/lib/clipper/format";
 import type { AppointmentDetails } from "@/lib/clipper/types";
 
 type AppointmentCardProps = {
@@ -100,9 +99,9 @@ function formatTime(value: Date | number | string | null | undefined) {
   return `${twelveHour}:${minute} ${meridiem}`;
 }
 
-function formatPrice(priceCents: number | null | undefined) {
+function formatTotal(priceCents: number | null | undefined) {
   if (typeof priceCents !== "number") return "Price to be confirmed";
-  return `₩${priceCents.toLocaleString("ko-KR")}`;
+  return formatPrice(priceCents);
 }
 
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
@@ -178,7 +177,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
         </div>
         <div className="border-t border-[#e6ebf1] px-5 py-5 sm:border-l sm:border-t-0 sm:px-8 sm:text-right">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#8898aa]">Total</p>
-          <p className="text-3xl font-bold tracking-[-0.04em] text-[#0a2540]">{formatPrice(details.priceCents)}</p>
+          <p className="text-3xl font-bold tracking-[-0.04em] text-[#0a2540]">{formatTotal(details.priceCents)}</p>
         </div>
       </div>
 

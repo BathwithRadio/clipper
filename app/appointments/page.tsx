@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { getAppointments } from "@/lib/clipper/data";
+import { AppointmentActions } from "@/components/clipper/appointment-actions";
+import { getAppointments, getBookingOptions } from "@/lib/clipper/data";
+import { formatPrice } from "@/lib/clipper/format";
 
 export const dynamic = "force-dynamic";
 
@@ -15,14 +17,12 @@ function formatDate(value: string) {
   return `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()} · ${hour12}:${String(date.getMinutes()).padStart(2, "0")} ${suffix}`;
 }
 
-function formatMoney(cents: number) {
-  return `₩${cents.toLocaleString("ko-KR")}`;
-}
-
 export default async function AppointmentsPage() {
-  const appointments = await getAppointments();
-  const upcoming = await getAppointments();
-  const upcomingCount = upcoming.filter((appointment) => appointment.status !== "cancelled").length;
+  const [appointments, options] = await Promise.all([getAppointments(), getBookingOptions()]);
+  const now = Date.now();
+  const upcomingCount = appointments.filter(
+    (appointment) => appointment.status !== "cancelled" && new Date(appointment.startsAt).getTime() > now,
+  ).length;
 
   return (
     <main className="min-h-screen bg-[#f7f9fc] text-[#0a2540]">
@@ -38,11 +38,16 @@ export default async function AppointmentsPage() {
         {appointments.length ? (
           <div className="mt-12 overflow-hidden rounded-2xl border border-[#dbe3ef] bg-white shadow-[0_28px_80px_rgb(38_46_77/10%)]">
             {appointments.map((appointment) => (
-              <Link key={appointment.id} href={`/appointments/${appointment.reference}`} className="grid gap-4 border-b border-[#e6ebf1] p-5 last:border-b-0 hover:bg-[#f7f9fc] sm:grid-cols-[1.25fr_1fr_auto] sm:items-center sm:p-7">
-                <div><p className="text-xl font-bold tracking-[-0.035em]">{appointment.pet.name} · {appointment.package.name}</p><p className="mt-1 text-sm text-[#53627a]">{appointment.neighborhood} · {appointment.groomer?.name ?? "Groomer pending"}</p></div>
-                <div><p className="text-sm font-semibold">{formatDate(appointment.startsAt)}</p><p className="mt-1 text-xs uppercase tracking-[0.1em] text-[#08775d]">{appointment.status}</p></div>
-                <div className="flex items-center justify-between gap-5 sm:block sm:text-right"><span className="font-bold">{formatMoney(appointment.priceCents)}</span><span className="ml-4 text-[#635bff]">›</span></div>
-              </Link>
+              <div key={appointment.id} className="grid gap-4 border-b border-[#e6ebf1] p-5 last:border-b-0 sm:p-7">
+                <Link href={`/appointments/${appointment.reference}`} className="grid gap-4 hover:opacity-80 sm:grid-cols-[1.25fr_1fr_auto] sm:items-center">
+                  <div><p className="text-xl font-bold tracking-[-0.035em]">{appointment.pet.name} · {appointment.package.name}</p><p className="mt-1 text-sm text-[#53627a]">{appointment.neighborhood} · {appointment.groomer?.name ?? "Groomer pending"}</p></div>
+                  <div><p className="text-sm font-semibold">{formatDate(appointment.startsAt)}</p><p className={`mt-1 text-xs uppercase tracking-[0.1em] ${appointment.status === "cancelled" ? "text-[#9f3f38]" : "text-[#08775d]"}`}>{appointment.status}</p></div>
+                  <div className="flex items-center justify-between gap-5 sm:block sm:text-right"><span className="font-bold">{formatPrice(appointment.priceCents)}</span><span className="ml-4 text-[#635bff]">›</span></div>
+                </Link>
+                {appointment.status !== "cancelled" && new Date(appointment.startsAt).getTime() > now ? (
+                  <AppointmentActions reference={appointment.reference} packageId={appointment.packageId} packages={options.packages} slots={options.slots} />
+                ) : null}
+              </div>
             ))}
           </div>
         ) : (

@@ -20,25 +20,120 @@ import { getDatabase } from "./db";
 import type {
   AppointmentDetails,
   BookingOption,
-  GroomingPackage,
+  BookingSlot,
 } from "./types";
+
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+const SLOT_DAYS = 7;
 
 export async function getBookingOptions(): Promise<BookingOption> {
   const db = getDatabase();
 
-  const packageRows = await db.select().from(groomingPackages);
-  const neighborhoodRows = await db
-    .select({ neighborhood: groomerServiceAreas.neighborhood })
-    .from(groomerServiceAreas);
-
-  const neighborhoods = [
-    ...new Set(neighborhoodRows.map((row) => row.neighborhood)),
-  ].sort();
+  const [packageRows, neighborhoodRows, slots] = await Promise.all([
+    db.select().from(groomingPackages),
+    db
+      .selectDistinct({ neighborhood: groomerServiceAreas.neighborhood })
+      .from(groomerServiceAreas)
+      .orderBy(groomerServiceAreas.neighborhood),
+    getAvailableSlots(),
+  ]);
 
   return {
     packages: packageRows,
-    neighborhoods,
+    neighborhoods: neighborhoodRows.map((row) => row.neighborhood),
+    slots,
   };
+}
+
+/**
+ * Hourly start times over the next `SLOT_DAYS` days (starting tomorrow) where
+ * at least one active groomer is scheduled and free for an hour. Uses the same
+ * UTC convention as `findAvailableGroomer`, which still does the final check
+ * for neighborhood and package length at booking time.
+ */
+async function getAvailableSlots(): Promise<BookingSlot[]> {
+  const days = SLOT_DAYS;
+  const db = getDatabase();
+  const today = new Date();
+  const windowStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) +
+      DAY_MS,
+  );
+  const windowEnd = new Date(windowStart.getTime() + days * DAY_MS);
+
+  const [schedules, booked] = await Promise.all([
+    db
+      .select({
+        groomerId: groomerSchedules.groomerId,
+        weekday: groomerSchedules.weekday,
+        startTime: groomerSchedules.startTime,
+        endTime: groomerSchedules.endTime,
+      })
+      .from(groomerSchedules)
+      .innerJoin(groomers, eq(groomers.id, groomerSchedules.groomerId))
+      .where(
+        and(eq(groomerSchedules.available, true), eq(groomers.active, true)),
+      ),
+    db
+      .select({
+        groomerId: appointments.groomerId,
+        startsAt: appointments.startsAt,
+        endsAt: appointments.endsAt,
+      })
+      .from(appointments)
+      .where(
+        and(
+          lt(appointments.startsAt, windowEnd),
+          gt(appointments.endsAt, windowStart),
+          ne(appointments.status, "cancelled"),
+        ),
+      ),
+  ]);
+
+  const bookedByGroomer = new Map<string, { start: number; end: number }[]>();
+  for (const appointment of booked) {
+    if (!appointment.groomerId) continue;
+    const list = bookedByGroomer.get(appointment.groomerId) ?? [];
+    list.push({
+      start: appointment.startsAt.getTime(),
+      end: appointment.endsAt.getTime(),
+    });
+    bookedByGroomer.set(appointment.groomerId, list);
+  }
+
+  const isBusy = (groomerId: string, start: number, end: number) =>
+    (bookedByGroomer.get(groomerId) ?? []).some(
+      (booking) => booking.start < end && booking.end > start,
+    );
+
+  const starts = new Set<number>();
+  for (let day = 0; day < days; day++) {
+    const dayStart = windowStart.getTime() + day * DAY_MS;
+    const weekday = new Date(dayStart).getUTCDay();
+
+    for (const schedule of schedules) {
+      if (schedule.weekday !== weekday) continue;
+      const open = dayStart + minutesOf(schedule.startTime) * MINUTE_MS;
+      const close = dayStart + minutesOf(schedule.endTime) * MINUTE_MS;
+
+      for (let start = open; start + HOUR_MS <= close; start += HOUR_MS) {
+        if (!starts.has(start) && !isBusy(schedule.groomerId, start, start + HOUR_MS)) {
+          starts.add(start);
+        }
+      }
+    }
+  }
+
+  return [...starts]
+    .sort((a, b) => a - b)
+    .map((start) => ({ startsAt: new Date(start).toISOString() }));
+}
+
+function minutesOf(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
 }
 
 export async function getAppointmentByReference(
@@ -106,6 +201,7 @@ export async function findAvailableGroomer(
   neighborhood: string,
   startsAt: Date,
   endsAt: Date,
+  excludeAppointmentId?: string,
 ): Promise<string | null> {
   const db = getDatabase();
   const weekday = startsAt.getUTCDay();
@@ -154,6 +250,9 @@ export async function findAvailableGroomer(
         lt(appointments.startsAt, endsAt),
         gt(appointments.endsAt, startsAt),
         ne(appointments.status, "cancelled"),
+        excludeAppointmentId
+          ? ne(appointments.id, excludeAppointmentId)
+          : undefined,
       ),
     );
 
