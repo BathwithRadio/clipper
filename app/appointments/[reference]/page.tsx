@@ -26,8 +26,8 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
       <div className="mx-auto max-w-6xl px-5 pb-16 sm:px-8 lg:px-12">
         <header className="relative flex items-center justify-between py-6 sm:py-8">
           <Link href="/" className="text-2xl font-black tracking-[-0.07em] text-[#0a2540]">clipper</Link>
-          <Link href="/#book-prism" className="inline-flex items-center gap-2 rounded-full bg-[#635bff] px-5 py-2.5 text-sm font-bold !text-white transition-colors hover:bg-[#0a2540]">
-            Book another visit <ArrowUpRight aria-hidden="true" className="size-4" />
+          <Link href="/#book-prism" className="inline-flex items-center gap-2 rounded-full bg-[#635bff] px-4 py-2.5 text-sm font-bold !text-white transition-colors hover:bg-[#0a2540] sm:px-5">
+            Book <span className="hidden sm:inline">another visit</span><span className="sm:hidden">again</span> <ArrowUpRight aria-hidden="true" className="size-4" />
           </Link>
         </header>
 

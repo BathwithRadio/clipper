@@ -29,12 +29,12 @@ export default async function AppointmentsPage() {
     <main className="min-h-screen bg-[#f7f9fc] text-[#0a2540]">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6 sm:px-8">
         <Link href="/" className="text-2xl font-black tracking-[-0.07em]">clipper</Link>
-        <div className="flex items-center gap-3"><ThemeToggle /><Link href="/#book-prism" className="rounded-full bg-[#635bff] px-5 py-2.5 text-sm font-bold !text-white">Book a visit ›</Link></div>
+        <div className="flex items-center gap-3"><ThemeToggle /><Link href="/#book-prism" className="rounded-full bg-[#635bff] px-4 py-2.5 text-sm sm:px-5 font-bold !text-white">Book a visit ›</Link></div>
       </header>
 
       <section className="mx-auto max-w-6xl px-5 pb-24 pt-14 sm:px-8 sm:pt-20">
         <p className="text-sm font-bold text-[#635bff]">Your visits · {upcomingCount} upcoming</p>
-        <h1 className="mt-3 text-[clamp(3rem,7vw,6rem)] font-bold leading-[0.95] tracking-[-0.065em]">Appointments</h1>
+        <h1 className="mt-3 text-[clamp(2.5rem,9vw,6rem)] font-bold leading-[0.95] tracking-[-0.065em]">Appointments</h1>
 
         {appointments.length ? (
           <div className="mt-12 overflow-hidden rounded-2xl border border-[#dbe3ef] bg-white shadow-[0_28px_80px_rgb(38_46_77/10%)]">
