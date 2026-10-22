@@ -184,7 +184,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e6ebf1] px-5 py-4 text-xs text-[#8898aa] sm:px-8">
         <span>Booked with Clipper</span>
-        <span className="font-mono tracking-[0.12em] text-[#53627a]">{details.reference ?? details.bookingReference ?? "CLP—"}</span>
+        <span className="break-all font-mono tracking-[0.12em] text-[#53627a]">{details.reference ?? details.bookingReference ?? "CLP—"}</span>
       </div>
     </section>
   );
