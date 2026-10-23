@@ -17,6 +17,18 @@ type BookingRequest = {
   startsAt?: unknown;
 };
 
+const REFERENCE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function createBookingReference() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const code = Array.from(
+    bytes,
+    (byte) => REFERENCE_ALPHABET[byte % REFERENCE_ALPHABET.length],
+  ).join("");
+
+  return `CLP-${code}`;
+}
+
 export async function POST(request: Request) {
   let input: BookingRequest;
 
@@ -100,13 +112,8 @@ export async function POST(request: Request) {
   }
 
   const now = new Date();
-  const bookingReference = `CLP-${Math.random()
-    .toString(36)
-    .slice(2, 8)
-    .toUpperCase()}`;
-  const appointmentId = `apt_${Date.now()}_${Math.random()
-    .toString(36)
-    .slice(2, 7)}`;
+  const bookingReference = createBookingReference();
+  const appointmentId = `apt_${crypto.randomUUID()}`;
 
   await db.insert(appointments).values({
     id: appointmentId,
@@ -128,10 +135,9 @@ export async function POST(request: Request) {
 
   // log it, don't make the customer wait for it
   after(() => {
-    console.info("Clipper booking created", {
-      bookingReference,
-      petName: petName.trim(),
-    });
+    console.info(
+      JSON.stringify({ event: "booking_created", bookingReference }),
+    );
   });
 
   return Response.json({ ok: true, reference: bookingReference });
