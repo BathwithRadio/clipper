@@ -17,8 +17,17 @@ type SlotOption = {
   timeLabel: string;
 };
 
-const dateLabelFormat = new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric" });
-const timeLabelFormat = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" });
+const dateLabelFormat = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const timeLabelFormat = new Intl.DateTimeFormat("en-US", {
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "UTC",
+});
 
 function toSlotOption(slot: BookingSlot): SlotOption {
   const date = new Date(slot.startsAt);
