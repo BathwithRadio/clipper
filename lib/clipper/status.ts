@@ -1,14 +1,16 @@
 export type StatusStyle = { label: string; className: string };
 
+const NEUTRAL_CLASS = "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]";
+
 /** Display label and badge colors for each appointment status. */
-export const statusStyles: Record<string, StatusStyle> = {
+const statusStyles: Record<string, StatusStyle> = {
   confirmed: {
     label: "Confirmed",
     className: "border-[#bfe8db] bg-[#e7f8f1] text-[#08775d]",
   },
   completed: {
     label: "Completed",
-    className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
+    className: NEUTRAL_CLASS,
   },
   cancelled: {
     label: "Cancelled",
@@ -24,7 +26,7 @@ export function getStatusStyle(status: string | null | undefined): StatusStyle {
   return (
     statusStyles[status ?? ""] ?? {
       label: status ? status.charAt(0).toUpperCase() + status.slice(1) : "Booked",
-      className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
+      className: NEUTRAL_CLASS,
     }
   );
 }

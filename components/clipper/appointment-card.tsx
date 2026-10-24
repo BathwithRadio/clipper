@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { formatPrice, formatSlotDate, formatSlotTime } from "@/lib/clipper/format";
-import { getStatusStyle } from "@/lib/clipper/status";
+import { StatusBadge } from "@/components/clipper/status-badge";
 import type { AppointmentDetails } from "@/lib/clipper/types";
 
 type AppointmentCardProps = {
@@ -62,7 +62,6 @@ function formatTotal(priceCents: number | null | undefined) {
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const details = appointment as unknown as DetailsForDisplay;
   const service = details.package ?? details.groomingPackage;
-  const status = getStatusStyle(details.status);
   const StatusIcon = statusIcons[details.status ?? ""] ?? Check;
   const appointmentDate = formatSlotDate(details.startsAt) ?? "Date to be confirmed";
   const startTime = formatSlotTime(details.startsAt) ?? "Time to be confirmed";
@@ -81,10 +80,9 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
               {petName}&apos;s appointment
             </h2>
           </div>
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${status.className}`}>
+          <StatusBadge status={details.status} className="gap-2 px-3 py-1.5">
             <StatusIcon aria-hidden="true" className="size-3.5" strokeWidth={3} />
-            {status.label}
-          </span>
+          </StatusBadge>
         </div>
       </div>
 
