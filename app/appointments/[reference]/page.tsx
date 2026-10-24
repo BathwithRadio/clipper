@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AppointmentActions } from "@/components/clipper/appointment-actions";
 import { AppointmentCard } from "@/components/clipper/appointment-card";
 import { BookingConfirmation } from "@/components/clipper/booking-confirmation";
+import { canChangeAppointment } from "@/lib/clipper/appointments";
 import { getAppointmentByReference, getBookingOptions } from "@/lib/clipper/data";
 
 type AppointmentPageProps = {
@@ -21,7 +22,7 @@ export default async function AppointmentPage({ params }: AppointmentPageProps) 
     notFound();
   }
 
-  const changeable = appointment.status !== "cancelled" && new Date(appointment.startsAt).getTime() > Date.now();
+  const changeable = canChangeAppointment(appointment);
   const options = changeable ? await getBookingOptions() : null;
 
   return (

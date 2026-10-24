@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AppointmentActions } from "@/components/clipper/appointment-actions";
 import { StatusBadge } from "@/components/clipper/status-badge";
 import { ThemeToggle } from "@/components/clipper/theme-toggle";
+import { canChangeAppointment } from "@/lib/clipper/appointments";
 import { getAppointments, getBookingOptions } from "@/lib/clipper/data";
 import { formatPrice, formatSlotDateTime } from "@/lib/clipper/format";
 
@@ -35,7 +36,7 @@ export default async function AppointmentsPage() {
                   <div><p className="text-sm font-semibold">{formatSlotDateTime(appointment.startsAt)}</p><StatusBadge status={appointment.status} className="mt-1.5" /></div>
                   <div className="flex items-center justify-between gap-5 sm:block sm:text-right"><span className="font-bold">{formatPrice(appointment.priceCents)}</span><span className="ml-4 text-[#635bff]">›</span></div>
                 </Link>
-                {appointment.status !== "cancelled" && new Date(appointment.startsAt).getTime() > now ? (
+                {canChangeAppointment(appointment, now) ? (
                   <AppointmentActions reference={appointment.reference} packageId={appointment.packageId} packages={options.packages} slots={options.slots} />
                 ) : null}
               </div>
