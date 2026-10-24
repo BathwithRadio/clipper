@@ -10,6 +10,9 @@ import { formatPrice } from "@/lib/clipper/format";
 import type { BookingOption, BookingSlot } from "@/lib/clipper/types";
 import { cn } from "@/lib/utils";
 
+const labelClass = "text-xs font-bold text-[#53627a]";
+const inputClass = "mt-2 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]";
+
 type SlotOption = {
   startsAt: string;
   dateKey: string;
@@ -76,7 +79,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
     fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ petName: petName.trim(), petBreed, packageId: selectedPackageId, neighborhood: selectedNeighborhood, address, unit: unit.trim(), startsAt: selectedSlot.startsAt }),
+      body: JSON.stringify({ petName: petName.trim(), petBreed, packageId: selectedPackageId, neighborhood: selectedNeighborhood, address, unit, startsAt: selectedSlot.startsAt }),
     })
       .then(async (response) => {
         const data = (await response.json().catch(() => ({}))) as { reference?: string; error?: string };
@@ -119,8 +122,8 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>3. Where should we arrive?</legend>
-                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className="text-xs font-bold text-[#53627a]">Street address<Input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className="mt-2 h-12 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]" /></label><label className="text-xs font-bold text-[#53627a]">Neighborhood<select value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
-                  <label className="mt-3 block text-xs font-bold text-[#53627a]">Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className="mt-2 h-11 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]" /></label>
+                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} /></label><label className={labelClass}>Neighborhood<select value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
+                  <label className={cn("mt-3 block", labelClass)}>Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className={cn("h-11", inputClass)} /></label>
                 </fieldset>
 
                 <fieldset>

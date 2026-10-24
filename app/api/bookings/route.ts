@@ -71,9 +71,7 @@ export async function POST(request: Request) {
   const neighborhood = input.neighborhood as string;
   const unit = typeof input.unit === "string" ? input.unit.trim() : "";
   // No separate column yet: keep the unit on the address line the groomer reads.
-  const address = unit
-    ? `${(input.address as string).trim()}, ${unit}`
-    : (input.address as string);
+  const address = [(input.address as string).trim(), unit].filter(Boolean).join(", ");
   const startsAt = new Date(input.startsAt as string);
 
   if (Number.isNaN(startsAt.getTime())) {
