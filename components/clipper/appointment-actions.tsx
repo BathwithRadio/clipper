@@ -34,19 +34,15 @@ export function AppointmentActions({
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const confirmInputRef = useRef<HTMLInputElement>(null);
-  const triggerRefs = { reschedule: useRef<HTMLButtonElement>(null), cancel: useRef<HTMLButtonElement>(null) };
-  // Which trigger opened the panel, so focus can go back to it on close.
+  const rescheduleRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  // Which trigger opened the panel. The triggers remount on close, so focus is restored after render.
   const returnFocusTo = useRef<"reschedule" | "cancel" | null>(null);
 
   useEffect(() => {
-    if (mode !== "idle") {
-      confirmInputRef.current?.focus();
-    } else if (returnFocusTo.current) {
-      triggerRefs[returnFocusTo.current].current?.focus();
-      returnFocusTo.current = null;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (mode !== "idle" || !returnFocusTo.current) return;
+    (returnFocusTo.current === "reschedule" ? rescheduleRef : cancelRef).current?.focus();
+    returnFocusTo.current = null;
   }, [mode]);
 
   const open = (next: "reschedule" | "cancel") => {
@@ -79,7 +75,7 @@ export function AppointmentActions({
         setError(result.error ?? "Something went wrong. Please try again.");
         return;
       }
-      setSuccess(mode === "cancel" ? "Appointment cancelled." : `Moved to ${slotLabel(startsAt)}.`);
+      setSuccess(mode === "cancel" ? "Appointment cancelled." : `Moved to ${formatSlotDateTime(startsAt)}.`);
       close();
       router.refresh();
     } catch {
@@ -93,8 +89,8 @@ export function AppointmentActions({
     return (
       <div className="grid gap-2">
         <div className="flex gap-2">
-          <Button ref={triggerRefs.reschedule} type="button" variant="outline" onClick={() => open("reschedule")} className="rounded-full border-[#dbe3ef] font-bold text-[#635bff] hover:bg-[#eef1ff] hover:text-[#635bff]">Reschedule</Button>
-          <Button ref={triggerRefs.cancel} type="button" variant="outline" onClick={() => open("cancel")} className="rounded-full border-[#f3c4c0] font-bold text-[#9f3f38] hover:bg-[#fff0ef] hover:text-[#9f3f38]">Cancel</Button>
+          <Button ref={rescheduleRef} type="button" variant="outline" onClick={() => open("reschedule")} className="rounded-full border-[#dbe3ef] font-bold text-[#635bff] hover:bg-[#eef1ff] hover:text-[#635bff]">Reschedule</Button>
+          <Button ref={cancelRef} type="button" variant="outline" onClick={() => open("cancel")} className="rounded-full border-[#f3c4c0] font-bold text-[#9f3f38] hover:bg-[#fff0ef] hover:text-[#9f3f38]">Cancel</Button>
         </div>
         <p role="status" className="text-sm font-semibold text-[#08775d]">{success}</p>
       </div>
@@ -131,7 +127,7 @@ export function AppointmentActions({
       )}
       <label className="grid gap-1 font-semibold">
         Type <span className="font-mono">{reference}</span> to confirm
-        <Input ref={confirmInputRef} value={typedReference} onChange={(event) => setTypedReference(event.target.value)} autoComplete="off" className="border-[#dbe3ef] bg-white font-mono font-normal uppercase focus-visible:ring-[#635bff]" />
+        <Input autoFocus value={typedReference} onChange={(event) => setTypedReference(event.target.value)} autoComplete="off" className="border-[#dbe3ef] bg-white font-mono font-normal uppercase focus-visible:ring-[#635bff]" />
       </label>
       {error ? <p role="alert" className="text-[#9f3f38]">{error}</p> : null}
       <div className="flex gap-2">
