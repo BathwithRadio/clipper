@@ -106,13 +106,13 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-[#dbe3ef] bg-white shadow-[0_32px_90px_rgb(38_46_77/12%)]">
-            <div className="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <form noValidate onSubmit={(event) => { event.preventDefault(); validateAndSubmit(); }} className="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
               <div className="space-y-10 p-5 sm:p-8 lg:p-10">
                 {formError ? <Alert className="border-[#f3aaa0] bg-[#fff3f0] text-[#8f3d30]"><AlertDescription>{formError}</AlertDescription></Alert> : null}
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>1. Who are we grooming?</legend>
-                  <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold text-[#53627a]">Pet name<Input aria-label="Pet name" value={petName} onChange={(event) => setPetName(event.target.value)} placeholder="e.g. Luna" className="mt-2 h-12 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]" /></label><label className="text-xs font-bold text-[#53627a]">Breed<select aria-label="Breed" value={petBreed} onChange={(event) => setPetBreed(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a breed</option><option>Golden Retriever</option><option>Labrador Retriever</option><option>French Bulldog</option><option>German Shepherd</option><option>Poodle</option><option>Miniature Poodle</option><option>Pomeranian</option><option>Pug</option><option>Chihuahua</option><option>Shiba Inu</option><option>Welsh Corgi</option><option>Yorkshire Terrier</option><option>Mixed Breed</option></select></label></div>
+                  <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold text-[#53627a]">Pet name<Input name="petName" autoComplete="off" required maxLength={40} value={petName} onChange={(event) => setPetName(event.target.value)} placeholder="e.g. Luna" className="mt-2 h-12 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]" /></label><label className="text-xs font-bold text-[#53627a]">Breed<select name="petBreed" required value={petBreed} onChange={(event) => setPetBreed(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a breed</option><option>Golden Retriever</option><option>Labrador Retriever</option><option>French Bulldog</option><option>German Shepherd</option><option>Poodle</option><option>Miniature Poodle</option><option>Pomeranian</option><option>Pug</option><option>Chihuahua</option><option>Shiba Inu</option><option>Welsh Corgi</option><option>Yorkshire Terrier</option><option>Mixed Breed</option></select></label></div>
                 </fieldset>
 
                 <fieldset>
@@ -122,8 +122,8 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>3. Where should we arrive?</legend>
-                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} /></label><label className={labelClass}>Neighborhood<select value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
-                  <label className={cn("mt-3 block", labelClass)}>Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className={cn("h-11", inputClass)} /></label>
+                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input name="address" autoComplete="street-address" required maxLength={120} value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} /></label><label className={labelClass}>Neighborhood<select name="neighborhood" required value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
+                  <label className={cn("mt-3 block", labelClass)}>Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input name="unit" autoComplete="address-line2" maxLength={60} value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className={cn("h-11", inputClass)} /></label>
                 </fieldset>
 
                 <fieldset>
@@ -140,11 +140,11 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
                   <p className="mt-1 text-sm text-[#53627a]">{selectedPackage?.name ?? "Choose a service"}</p>
                   <dl className="mt-7 space-y-4 border-y border-[#dbe3ef] py-5 text-sm"><div className="flex justify-between gap-3"><dt className="text-[#8898aa]">Arrival</dt><dd className="text-right font-semibold" style={{ color: ink }}>{selectedSlot ? `${selectedSlot.dateLabel}, ${selectedSlot.timeLabel}` : "Not selected"}</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Duration</dt><dd className="font-semibold" style={{ color: ink }}>{durationMinutes} min</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Neighborhood</dt><dd className="font-semibold" style={{ color: ink }}>{selectedNeighborhood || "Not selected"}</dd></div></dl>
                   <div className="my-6 flex items-end justify-between"><span className="text-sm font-semibold text-[#53627a]">Total</span><span className="text-3xl font-bold tracking-[-0.05em]" style={{ color: ink }}>{formatPrice(totalPrice)}</span></div>
-                  <Button type="button" onClick={validateAndSubmit} disabled={submitting} className="h-12 w-full rounded-md text-sm font-bold !text-white shadow-none" style={{ background: accent }}>{submitting ? "Saving your spot…" : "Confirm visit →"}</Button>
+                  <Button type="submit" disabled={submitting} className="h-12 w-full rounded-md text-sm font-bold !text-white shadow-none" style={{ background: accent }}>{submitting ? "Saving your spot…" : "Confirm visit →"}</Button>
                   <p className="mt-3 text-center text-[0.68rem] leading-5 text-[#8898aa]">No charge until your groomer is confirmed.</p>
                 </div>
               </aside>
-            </div>
+            </form>
           </div>
         </div>
       </section>

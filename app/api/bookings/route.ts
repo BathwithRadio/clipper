@@ -65,6 +65,21 @@ export async function POST(request: Request) {
     );
   }
 
+  const maxLengths = { petName: 40, address: 120 } as const;
+  const tooLong = (Object.keys(maxLengths) as (keyof typeof maxLengths)[]).find(
+    (field) => (input[field] as string).trim().length > maxLengths[field],
+  );
+
+  if (tooLong) {
+    return Response.json(
+      {
+        ok: false,
+        error: `${tooLong} must be at most ${maxLengths[tooLong]} characters.`,
+      },
+      { status: 400 },
+    );
+  }
+
   const petName = input.petName as string;
   const petBreed = input.petBreed as string;
   const packageId = input.packageId as string;
