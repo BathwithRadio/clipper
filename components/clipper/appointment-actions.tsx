@@ -3,21 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { formatPrice } from "@/lib/clipper/format";
+import { formatPrice, formatSlotDateTime } from "@/lib/clipper/format";
 import type { BookingSlot, GroomingPackage } from "@/lib/clipper/types";
 
 type Mode = "idle" | "cancel" | "reschedule";
-
-function slotLabel(value: string) {
-  return new Date(value).toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-  });
-}
 
 export function AppointmentActions({
   reference,
@@ -93,7 +82,7 @@ export function AppointmentActions({
             New time
             <select value={startsAt} onChange={(event) => setStartsAt(event.target.value)} className="rounded-md border border-[#dbe3ef] bg-white px-3 py-2 font-normal">
               {slots.length ? null : <option value="">No open times this week</option>}
-              {slots.map((slot) => <option key={slot.startsAt} value={slot.startsAt}>{slotLabel(slot.startsAt)}</option>)}
+              {slots.map((slot) => <option key={slot.startsAt} value={slot.startsAt}>{formatSlotDateTime(slot.startsAt)}</option>)}
             </select>
           </label>
           <label className="grid gap-1 font-semibold">
