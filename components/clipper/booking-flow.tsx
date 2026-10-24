@@ -47,7 +47,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const [selectedNeighborhood, setSelectedNeighborhood] = useState("");
   const [address, setAddress] = useState("");
   const [unit, setUnit] = useState("");
-  const [selectedSlotId, setSelectedSlotId] = useState(() => options.slots[0]?.startsAt ?? "");
+  const [selectedSlotId, setSelectedSlotId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
