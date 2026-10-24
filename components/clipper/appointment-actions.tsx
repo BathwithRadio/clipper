@@ -85,6 +85,7 @@ export function AppointmentActions({
               {slots.map((slot) => <option key={slot.startsAt} value={slot.startsAt}>{formatSlotDateTime(slot.startsAt)}</option>)}
             </select>
           </label>
+          {slots.length ? null : <p className="text-xs text-[#53627a]">Need a different week? Call <a href="tel:+8225550142" className="font-bold text-[#635bff]">02-555-0142</a>.</p>}
           <label className="grid gap-1 font-semibold">
             Package
             <select value={selectedPackageId} onChange={(event) => setSelectedPackageId(event.target.value)} className="rounded-md border border-[#dbe3ef] bg-white px-3 py-2 font-normal">

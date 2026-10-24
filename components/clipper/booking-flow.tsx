@@ -53,8 +53,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const { slots, groups: groupedSlots } = useMemo(() => groupSlots(options.slots), [options.slots]);
   const selectedPackage = options.packages.find((pkg) => pkg.id === selectedPackageId);
   const selectedSlot = slots.find((slot) => slot.startsAt === selectedSlotId);
-  const totalPrice = selectedPackage?.priceCents ?? 0;
-  const durationMinutes = selectedPackage?.durationMinutes ?? 0;
+  const unavailable = options.packages.length === 0 || options.neighborhoods.length === 0;
 
   function validateAndSubmit() {
     if (!petName.trim() || !petBreed || !selectedPackageId || !selectedNeighborhood || !address.trim() || !selectedSlot) {
@@ -105,11 +104,13 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>2. Choose a service</legend>
                   <div className="divide-y divide-[#e6ebf1] border-y border-[#e6ebf1]">{options.packages.map((pkg) => <button type="button" key={pkg.id} onClick={() => { setSelectedPackageId(pkg.id); setFormError(""); }} className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-1 sm:gap-5 py-5 text-left", selectedPackageId === pkg.id ? "" : "opacity-70 hover:opacity-100")}><span><span className="flex items-center gap-2 font-bold" style={{ color: ink }}><span className="size-2 rounded-full" style={{ background: selectedPackageId === pkg.id ? accent : "#dbe3ef" }} />{pkg.name}</span><span className="mt-1 block pl-4 text-xs leading-5 text-[#8898aa]">{pkg.description}</span></span><span className="text-right"><span className="block font-bold" style={{ color: ink }}>{formatPrice(pkg.priceCents)}</span><span className="text-xs text-[#8898aa]">{pkg.durationMinutes} min</span></span></button>)}</div>
+                  {options.packages.length ? null : <p className="text-sm text-[#53627a]">Services are temporarily unavailable. Call <a href="tel:+8225550142" className="font-bold text-[#635bff]">02-555-0142</a> to book.</p>}
                 </fieldset>
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>3. Where should we arrive?</legend>
                   <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input name="address" autoComplete="street-address" required maxLength={BOOKING_MAX_LENGTHS.address} value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} /></label><label className={labelClass}>Neighborhood<select name="neighborhood" required value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
+                  {options.neighborhoods.length ? null : <p className="mt-3 text-sm text-[#53627a]">We&apos;re not serving any neighborhoods right now. Call <a href="tel:+8225550142" className="font-bold text-[#635bff]">02-555-0142</a> and we&apos;ll see what we can do.</p>}
                   <label className={cn("mt-3 block", labelClass)}>Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input name="unit" autoComplete="address-line2" maxLength={BOOKING_MAX_LENGTHS.unit} value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className={cn("h-11", inputClass)} /></label>
                 </fieldset>
 
@@ -125,9 +126,9 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
                   <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8898aa]">Visit summary</p>
                   <p className="mt-5 text-2xl font-bold tracking-[-0.04em]" style={{ color: ink }}>{petName || "Your pet"}</p>
                   <p className="mt-1 text-sm text-[#53627a]">{selectedPackage?.name ?? "Choose a service"}</p>
-                  <dl className="mt-7 space-y-4 border-y border-[#dbe3ef] py-5 text-sm"><div className="flex justify-between gap-3"><dt className="text-[#8898aa]">Arrival</dt><dd className="text-right font-semibold" style={{ color: ink }}>{selectedSlot ? `${selectedSlot.dateLabel}, ${selectedSlot.timeLabel}` : "Not selected"}</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Duration</dt><dd className="font-semibold" style={{ color: ink }}>{durationMinutes} min</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Neighborhood</dt><dd className="font-semibold" style={{ color: ink }}>{selectedNeighborhood || "Not selected"}</dd></div></dl>
-                  <div className="my-6 flex items-end justify-between"><span className="text-sm font-semibold text-[#53627a]">Total</span><span className="text-3xl font-bold tracking-[-0.05em]" style={{ color: ink }}>{formatPrice(totalPrice)}</span></div>
-                  <Button type="submit" disabled={submitting} className="h-12 w-full rounded-md text-sm font-bold !text-white shadow-none" style={{ background: accent }}>{submitting ? "Saving your spot…" : "Confirm visit →"}</Button>
+                  <dl className="mt-7 space-y-4 border-y border-[#dbe3ef] py-5 text-sm"><div className="flex justify-between gap-3"><dt className="text-[#8898aa]">Arrival</dt><dd className="text-right font-semibold" style={{ color: ink }}>{selectedSlot ? `${selectedSlot.dateLabel}, ${selectedSlot.timeLabel}` : "Not selected"}</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Duration</dt><dd className="font-semibold" style={{ color: ink }}>{selectedPackage ? `${selectedPackage.durationMinutes} min` : "—"}</dd></div><div className="flex justify-between"><dt className="text-[#8898aa]">Neighborhood</dt><dd className="font-semibold" style={{ color: ink }}>{selectedNeighborhood || "Not selected"}</dd></div></dl>
+                  <div className="my-6 flex items-end justify-between"><span className="text-sm font-semibold text-[#53627a]">Total</span><span className="text-3xl font-bold tracking-[-0.05em]" style={{ color: ink }}>{selectedPackage ? formatPrice(selectedPackage.priceCents) : "—"}</span></div>
+                  <Button type="submit" disabled={submitting || unavailable} className="h-12 w-full rounded-md text-sm font-bold !text-white shadow-none" style={{ background: accent }}>{submitting ? "Saving your spot…" : "Confirm visit →"}</Button>
                   <p className="mt-3 text-center text-[0.68rem] leading-5 text-[#8898aa]">No charge until your groomer is confirmed.</p>
                 </div>
               </aside>
