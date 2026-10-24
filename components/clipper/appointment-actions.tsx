@@ -1,13 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CallUsNotice } from "@/components/clipper/support-phone";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatPrice, formatSlotDateTime } from "@/lib/clipper/format";
 import type { BookingSlot, GroomingPackage } from "@/lib/clipper/types";
 
 type Mode = "idle" | "cancel" | "reschedule";
+
+const selectClassName =
+  "h-9 rounded-md border border-[#dbe3ef] bg-white px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]";
 
 export function AppointmentActions({
   reference,
@@ -26,7 +31,29 @@ export function AppointmentActions({
   const [startsAt, setStartsAt] = useState(slots[0]?.startsAt ?? "");
   const [selectedPackageId, setSelectedPackageId] = useState(packageId);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const confirmInputRef = useRef<HTMLInputElement>(null);
+  const triggerRefs = { reschedule: useRef<HTMLButtonElement>(null), cancel: useRef<HTMLButtonElement>(null) };
+  // Which trigger opened the panel, so focus can go back to it on close.
+  const returnFocusTo = useRef<"reschedule" | "cancel" | null>(null);
+
+  useEffect(() => {
+    if (mode !== "idle") {
+      confirmInputRef.current?.focus();
+    } else if (returnFocusTo.current) {
+      triggerRefs[returnFocusTo.current].current?.focus();
+      returnFocusTo.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  const open = (next: "reschedule" | "cancel") => {
+    returnFocusTo.current = next;
+    setSuccess("");
+    setMode(next);
+  };
 
   const close = () => {
     setMode("idle");
@@ -47,11 +74,12 @@ export function AppointmentActions({
             : { confirmReference: typedReference, startsAt, packageId: selectedPackageId },
         ),
       });
-      const result = (await response.json()) as { ok: boolean; error?: string };
-      if (!result.ok) {
-        setError(result.error ?? "Something went wrong.");
+      const result = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!response.ok || !result.ok) {
+        setError(result.error ?? "Something went wrong. Please try again.");
         return;
       }
+      setSuccess(mode === "cancel" ? "Appointment cancelled." : `Moved to ${slotLabel(startsAt)}.`);
       close();
       router.refresh();
     } catch {
@@ -63,9 +91,12 @@ export function AppointmentActions({
 
   if (mode === "idle") {
     return (
-      <div className="flex gap-2">
-        <button type="button" onClick={() => setMode("reschedule")} className="rounded-full border border-[#dbe3ef] px-4 py-2 text-sm font-bold text-[#635bff] hover:bg-[#eef1ff]">Reschedule</button>
-        <button type="button" onClick={() => setMode("cancel")} className="rounded-full border border-[#f3c4c0] px-4 py-2 text-sm font-bold text-[#9f3f38] hover:bg-[#fff0ef]">Cancel</button>
+      <div className="grid gap-2">
+        <div className="flex gap-2">
+          <Button ref={triggerRefs.reschedule} type="button" variant="outline" onClick={() => open("reschedule")} className="rounded-full border-[#dbe3ef] font-bold text-[#635bff] hover:bg-[#eef1ff] hover:text-[#635bff]">Reschedule</Button>
+          <Button ref={triggerRefs.cancel} type="button" variant="outline" onClick={() => open("cancel")} className="rounded-full border-[#f3c4c0] font-bold text-[#9f3f38] hover:bg-[#fff0ef] hover:text-[#9f3f38]">Cancel</Button>
+        </div>
+        <p role="status" className="text-sm font-semibold text-[#08775d]">{success}</p>
       </div>
     );
   }
@@ -81,7 +112,7 @@ export function AppointmentActions({
         <>
           <label className="grid gap-1 font-semibold">
             New time
-            <select value={startsAt} onChange={(event) => setStartsAt(event.target.value)} className="rounded-md border border-[#dbe3ef] bg-white px-3 py-2 font-normal">
+            <select value={startsAt} onChange={(event) => setStartsAt(event.target.value)} className={selectClassName}>
               {slots.length ? null : <option value="">No open times this week</option>}
               {slots.map((slot) => <option key={slot.startsAt} value={slot.startsAt}>{formatSlotDateTime(slot.startsAt)}</option>)}
             </select>
@@ -89,7 +120,7 @@ export function AppointmentActions({
           {slots.length === 0 && <CallUsNotice className="text-xs">Need a different week?</CallUsNotice>}
           <label className="grid gap-1 font-semibold">
             Package
-            <select value={selectedPackageId} onChange={(event) => setSelectedPackageId(event.target.value)} className="rounded-md border border-[#dbe3ef] bg-white px-3 py-2 font-normal">
+            <select value={selectedPackageId} onChange={(event) => setSelectedPackageId(event.target.value)} className={selectClassName}>
               {packages.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.durationMinutes} min · {formatPrice(item.priceCents)}</option>)}
             </select>
           </label>
@@ -100,14 +131,14 @@ export function AppointmentActions({
       )}
       <label className="grid gap-1 font-semibold">
         Type <span className="font-mono">{reference}</span> to confirm
-        <input value={typedReference} onChange={(event) => setTypedReference(event.target.value)} autoComplete="off" className="rounded-md border border-[#dbe3ef] bg-white px-3 py-2 font-mono font-normal uppercase" />
+        <Input ref={confirmInputRef} value={typedReference} onChange={(event) => setTypedReference(event.target.value)} autoComplete="off" className="border-[#dbe3ef] bg-white font-mono font-normal uppercase focus-visible:ring-[#635bff]" />
       </label>
       {error ? <p role="alert" className="text-[#9f3f38]">{error}</p> : null}
       <div className="flex gap-2">
-        <button type="button" disabled={!canSubmit} onClick={submit} className="rounded-full bg-[#0a2540] px-4 py-2 font-bold text-white disabled:opacity-40">
+        <Button type="button" disabled={!canSubmit} onClick={submit} className="rounded-full bg-[#0a2540] font-bold text-white disabled:opacity-40">
           {submitting ? "Saving…" : mode === "cancel" ? "Cancel appointment" : "Move appointment"}
-        </button>
-        <button type="button" onClick={close} className="rounded-full px-4 py-2 font-bold text-[#53627a]">Back</button>
+        </Button>
+        <Button type="button" variant="ghost" onClick={close} className="rounded-full font-bold text-[#53627a]">Back</Button>
       </div>
     </div>
   );
