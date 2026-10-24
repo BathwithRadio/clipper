@@ -14,8 +14,7 @@ import { cn } from "@/lib/utils";
 const labelClass = "text-xs font-bold text-[#53627a]";
 const inputClass = "mt-2 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff] aria-invalid:border-[#f3aaa0]";
 
-const FIELD_ORDER = ["petName", "petBreed", "package", "address", "neighborhood", "slot"] as const;
-type Field = (typeof FIELD_ORDER)[number];
+type Field = "petName" | "petBreed" | "package" | "address" | "neighborhood" | "slot";
 type FieldErrors = Partial<Record<Field, string>>;
 
 type SlotOption = {
@@ -56,15 +55,23 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const [formError, setFormError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
+  const fieldId = (field: Field) => `${sectionId}-${field}`;
+  const errorId = (field: Field) => `${fieldId(field)}-error`;
   // Props for an input that may carry a field error: stable id, aria-invalid, and a link to the message.
   const fieldProps = (field: Field) => ({
-    id: `${sectionId}-${field}`,
+    id: fieldId(field),
     "aria-invalid": fieldErrors[field] ? true : undefined,
-    "aria-describedby": fieldErrors[field] ? `${sectionId}-${field}-error` : undefined,
+    "aria-describedby": fieldErrors[field] ? errorId(field) : undefined,
   });
   const fieldError = (field: Field) =>
-    fieldErrors[field] ? <span id={`${sectionId}-${field}-error`} className="mt-1.5 block text-xs font-semibold text-[#9f3f38]">{fieldErrors[field]}</span> : null;
-  const clearError = (field: Field) => setFieldErrors(({ [field]: _removed, ...rest }) => rest);
+    fieldErrors[field] ? <span id={errorId(field)} className="mt-1.5 block text-xs font-semibold text-[#9f3f38]">{fieldErrors[field]}</span> : null;
+  // Drops one field's error; the summary banner goes once none are left.
+  const clearError = (field: Field) => {
+    if (!fieldErrors[field]) return;
+    const { [field]: _removed, ...rest } = fieldErrors;
+    setFieldErrors(rest);
+    if (Object.keys(rest).length === 0) setFormError("");
+  };
 
   const { slots, groups: groupedSlots } = useMemo(() => groupSlots(options.slots), [options.slots]);
   const selectedPackage = options.packages.find((pkg) => pkg.id === selectedPackageId);
@@ -76,18 +83,21 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const totalLabel = selectedPackage ? formatPrice(selectedPackage.priceCents) : "—";
 
   function validateAndSubmit() {
-    const errors: FieldErrors = {};
-    if (!petName.trim()) errors.petName = "Tell us your pet’s name.";
-    if (!petBreed) errors.petBreed = "Choose a breed.";
-    if (!selectedPackageId) errors.package = "Choose a service.";
-    if (!address.trim()) errors.address = "Enter the street address.";
-    if (!selectedNeighborhood) errors.neighborhood = "Choose a neighborhood.";
-    if (!selectedSlot) errors.slot = "Pick an arrival time.";
-    setFieldErrors(errors);
-    const firstInvalid = FIELD_ORDER.find((field) => errors[field]);
-    if (firstInvalid || !selectedSlot) {
+    // In page order, so the first failure is the one we focus.
+    const rules: [Field, boolean, string][] = [
+      ["petName", !petName.trim(), "Tell us your pet’s name."],
+      ["petBreed", !petBreed, "Choose a breed."],
+      ["package", !selectedPackageId, "Choose a service."],
+      ["address", !address.trim(), "Enter the street address."],
+      ["neighborhood", !selectedNeighborhood, "Choose a neighborhood."],
+      ["slot", !selectedSlot, "Pick an arrival time."],
+    ];
+    const failed = rules.filter(([, missing]) => missing);
+    setFieldErrors(Object.fromEntries(failed.map(([field, , message]) => [field, message])));
+    // `!selectedSlot` is already a rule; it's repeated so TypeScript narrows `selectedSlot` below.
+    if (failed.length || !selectedSlot) {
       setFormError("Please fix the highlighted fields before booking your Clipper visit.");
-      document.getElementById(`${sectionId}-${firstInvalid}`)?.focus();
+      if (failed[0]) document.getElementById(fieldId(failed[0][0]))?.focus();
       return;
     }
     setSubmitting(true);
@@ -124,7 +134,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
           <div className="overflow-hidden rounded-2xl border border-[#dbe3ef] bg-white shadow-[0_32px_90px_rgb(38_46_77/12%)]">
             <form noValidate onSubmit={(event) => { event.preventDefault(); validateAndSubmit(); }} className="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
               <div className="space-y-10 p-5 sm:p-8 lg:p-10">
-                {formError ? <Alert role="alert" className="border-[#f3aaa0] bg-[#fff3f0] text-[#8f3d30]"><AlertDescription>{formError}</AlertDescription></Alert> : null}
+                {formError ? <Alert className="border-[#f3aaa0] bg-[#fff3f0] text-[#8f3d30]"><AlertDescription>{formError}</AlertDescription></Alert> : null}
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>1. Who are we grooming?</legend>
@@ -133,7 +143,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>2. Choose a service</legend>
-                  <div className="divide-y divide-[#e6ebf1] border-y border-[#e6ebf1]">{options.packages.map((pkg, index) => <button type="button" key={pkg.id} id={index === 0 ? `${sectionId}-package` : undefined} aria-pressed={selectedPackageId === pkg.id} onClick={() => { setSelectedPackageId(pkg.id); setFormError(""); clearError("package"); }} className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md px-1 sm:gap-5 py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]",selectedPackageId === pkg.id ? "" : "opacity-70 hover:opacity-100")}><span><span className="flex items-center gap-2 font-bold" style={{ color: ink }}><span className="size-2 rounded-full" style={{ background: selectedPackageId === pkg.id ? accent : "#dbe3ef" }} />{pkg.name}</span><span className="mt-1 block pl-4 text-xs leading-5 text-[#8898aa]">{pkg.description}</span></span><span className="text-right"><span className="block font-bold" style={{ color: ink }}>{formatPrice(pkg.priceCents)}</span><span className="text-xs text-[#8898aa]">{pkg.durationMinutes} min</span></span></button>)}</div>
+                  <div className="divide-y divide-[#e6ebf1] border-y border-[#e6ebf1]">{options.packages.map((pkg, index) => <button type="button" key={pkg.id} id={index === 0 ? fieldId("package") : undefined} aria-pressed={selectedPackageId === pkg.id} onClick={() => { setSelectedPackageId(pkg.id); setFormError(""); clearError("package"); }} className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md px-1 sm:gap-5 py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]",selectedPackageId === pkg.id ? "" : "opacity-70 hover:opacity-100")}><span><span className="flex items-center gap-2 font-bold" style={{ color: ink }}><span className="size-2 rounded-full" style={{ background: selectedPackageId === pkg.id ? accent : "#dbe3ef" }} />{pkg.name}</span><span className="mt-1 block pl-4 text-xs leading-5 text-[#8898aa]">{pkg.description}</span></span><span className="text-right"><span className="block font-bold" style={{ color: ink }}>{formatPrice(pkg.priceCents)}</span><span className="text-xs text-[#8898aa]">{pkg.durationMinutes} min</span></span></button>)}</div>
                   {noPackages && <CallUsNotice>Services are temporarily unavailable.</CallUsNotice>}
                   {fieldError("package")}
                 </fieldset>
@@ -148,7 +158,7 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
                 <fieldset>
                   <legend className="mb-1 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>4. Pick an arrival time</legend>
                   <p className="mb-4 text-xs text-[#8898aa]">All times KST · matched against live groomer routes</p>
-                  <div className="grid gap-5 sm:grid-cols-2">{Object.entries(groupedSlots).map(([dateKey, dateSlots]) => <div key={dateKey}><p className="mb-2 text-sm font-bold" style={{ color: ink }}>{dateSlots[0]?.dateLabel}</p><div className="grid grid-cols-2 gap-2">{dateSlots.map((slot) => <button type="button" key={slot.startsAt} id={slot.startsAt === slots[0]?.startsAt ? `${sectionId}-slot` : undefined} aria-pressed={selectedSlotId === slot.startsAt} aria-label={`${slot.dateLabel}, ${slot.timeLabel}`} onClick={() => { setSelectedSlotId(slot.startsAt); setFormError(""); clearError("slot"); }} className={cn("rounded-md border px-3 py-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-[#635bff] focus-visible:ring-offset-2",selectedSlotId === slot.startsAt ? "text-white" : "border-[#dbe3ef] bg-white text-[#425466]")} style={selectedSlotId === slot.startsAt ? { background: accent, borderColor: accent } : undefined}>{slot.timeLabel}</button>)}</div></div>)}{slots.length ? null : <p className="text-sm text-[#53627a]">No routes are open this week yet.</p>}</div>
+                  <div className="grid gap-5 sm:grid-cols-2">{Object.entries(groupedSlots).map(([dateKey, dateSlots]) => <div key={dateKey}><p className="mb-2 text-sm font-bold" style={{ color: ink }}>{dateSlots[0]?.dateLabel}</p><div className="grid grid-cols-2 gap-2">{dateSlots.map((slot) => <button type="button" key={slot.startsAt} id={slot.startsAt === slots[0]?.startsAt ? fieldId("slot") : undefined} aria-pressed={selectedSlotId === slot.startsAt} aria-label={`${slot.dateLabel}, ${slot.timeLabel}`} onClick={() => { setSelectedSlotId(slot.startsAt); setFormError(""); clearError("slot"); }} className={cn("rounded-md border px-3 py-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-[#635bff] focus-visible:ring-offset-2",selectedSlotId === slot.startsAt ? "text-white" : "border-[#dbe3ef] bg-white text-[#425466]")} style={selectedSlotId === slot.startsAt ? { background: accent, borderColor: accent } : undefined}>{slot.timeLabel}</button>)}</div></div>)}{slots.length ? null : <p className="text-sm text-[#53627a]">No routes are open this week yet.</p>}</div>
                   {fieldError("slot")}
                 </fieldset>
               </div>
