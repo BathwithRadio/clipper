@@ -2,6 +2,9 @@ import type { appointments, groomers, groomingPackages } from "@/db/schema";
 
 export type GroomingPackage = typeof groomingPackages.$inferSelect;
 
+/** Max lengths for booking text fields, shared by the form and `POST /api/bookings`. */
+export const BOOKING_MAX_LENGTHS = { petName: 40, address: 120, unit: 60 } as const;
+
 export type BookingSlot = {
   startsAt: string;
 };
