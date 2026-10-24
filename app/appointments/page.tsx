@@ -4,6 +4,7 @@ import { AppointmentActions } from "@/components/clipper/appointment-actions";
 import { ThemeToggle } from "@/components/clipper/theme-toggle";
 import { getAppointments, getBookingOptions } from "@/lib/clipper/data";
 import { formatPrice, formatSlotDateTime } from "@/lib/clipper/format";
+import { getStatusStyle } from "@/lib/clipper/status";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function AppointmentsPage() {
               <div key={appointment.id} className="grid gap-4 border-b border-[#e6ebf1] p-5 last:border-b-0 sm:p-7">
                 <Link href={`/appointments/${appointment.reference}`} className="grid gap-4 hover:opacity-80 sm:grid-cols-[1.25fr_1fr_auto] sm:items-center">
                   <div><p className="text-xl font-bold tracking-[-0.035em]">{appointment.pet.name} · {appointment.package.name}</p><p className="mt-1 text-sm text-[#53627a]">{appointment.neighborhood} · {appointment.groomer?.name ?? "Groomer pending"}</p></div>
-                  <div><p className="text-sm font-semibold">{formatSlotDateTime(appointment.startsAt)}</p><p className={`mt-1 text-xs uppercase tracking-[0.1em] ${appointment.status === "cancelled" ? "text-[#9f3f38]" : "text-[#08775d]"}`}>{appointment.status}</p></div>
+                  <div><p className="text-sm font-semibold">{formatSlotDateTime(appointment.startsAt)}</p><span className={`mt-1.5 inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold ${getStatusStyle(appointment.status).className}`}>{getStatusStyle(appointment.status).label}</span></div>
                   <div className="flex items-center justify-between gap-5 sm:block sm:text-right"><span className="font-bold">{formatPrice(appointment.priceCents)}</span><span className="ml-4 text-[#635bff]">›</span></div>
                 </Link>
                 {appointment.status !== "cancelled" && new Date(appointment.startsAt).getTime() > now ? (

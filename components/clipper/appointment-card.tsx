@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { formatPrice, formatSlotDate, formatSlotTime } from "@/lib/clipper/format";
+import { getStatusStyle } from "@/lib/clipper/status";
 import type { AppointmentDetails } from "@/lib/clipper/types";
 
 type AppointmentCardProps = {
@@ -46,27 +47,11 @@ type DetailsForDisplay = {
   } | null;
 };
 
-const statusLabels: Record<string, { label: string; className: string; icon: typeof Check }> = {
-  confirmed: {
-    label: "Confirmed",
-    className: "border-[#bfe8db] bg-[#e7f8f1] text-[#08775d]",
-    icon: Check,
-  },
-  completed: {
-    label: "Completed",
-    className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
-    icon: CheckCheck,
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "border-[#f3c4c0] bg-[#fff0ef] text-[#9f3f38]",
-    icon: X,
-  },
-  pending: {
-    label: "Pending",
-    className: "border-[#e4d5a3] bg-[#fff8dc] text-[#775d13]",
-    icon: Hourglass,
-  },
+const statusIcons: Record<string, typeof Check> = {
+  confirmed: Check,
+  completed: CheckCheck,
+  cancelled: X,
+  pending: Hourglass,
 };
 
 function formatTotal(priceCents: number | null | undefined) {
@@ -77,12 +62,8 @@ function formatTotal(priceCents: number | null | undefined) {
 export function AppointmentCard({ appointment }: AppointmentCardProps) {
   const details = appointment as unknown as DetailsForDisplay;
   const service = details.package ?? details.groomingPackage;
-  const status = statusLabels[details.status ?? ""] ?? {
-    label: details.status ?? "Booked",
-    className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
-    icon: Check,
-  };
-  const StatusIcon = status.icon;
+  const status = getStatusStyle(details.status);
+  const StatusIcon = statusIcons[details.status ?? ""] ?? Check;
   const appointmentDate = formatSlotDate(details.startsAt) ?? "Date to be confirmed";
   const startTime = formatSlotTime(details.startsAt) ?? "Time to be confirmed";
   const endTime = formatSlotTime(details.endsAt) ?? "Time to be confirmed";
