@@ -41,7 +41,7 @@ export function BookingConfirmation({ appointment }: BookingConfirmationProps) {
           {petName} is on the books.
         </h1>
         <p className="mt-5 max-w-md text-base leading-7 text-[#adbdcc] sm:text-lg">
-          We&apos;ll see you on {formatSlotDay(details.startsAt)}. Your groomer will bring the good towels—and a little extra patience.
+          We&apos;ll see you on {formatSlotDay(details.startsAt) ?? "your chosen day"}. Your groomer will bring the good towels—and a little extra patience.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-[#d6e2ec]">
           <span className="inline-flex items-center gap-2"><Heart aria-hidden="true" className="size-4 fill-current" /> Made for good pets</span>

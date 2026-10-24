@@ -74,9 +74,9 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
     label: details.status ?? "Booked",
     className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
   };
-  const appointmentDate = formatSlotDate(details.startsAt);
-  const startTime = formatSlotTime(details.startsAt);
-  const endTime = formatSlotTime(details.endsAt);
+  const appointmentDate = formatSlotDate(details.startsAt) ?? "Date to be confirmed";
+  const startTime = formatSlotTime(details.startsAt) ?? "Time to be confirmed";
+  const endTime = formatSlotTime(details.endsAt) ?? "Time to be confirmed";
   const address = details.address ?? "Address to be confirmed";
   const neighborhood = details.neighborhood ? `, ${details.neighborhood}` : "";
   const petName = details.pet?.name ?? "Your pet";

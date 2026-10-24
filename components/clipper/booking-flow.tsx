@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatPrice } from "@/lib/clipper/format";
+import { formatPrice, formatSlotShortDay, formatSlotTime } from "@/lib/clipper/format";
 import { BOOKING_MAX_LENGTHS, type BookingOption, type BookingSlot } from "@/lib/clipper/types";
 import { cn } from "@/lib/utils";
 
@@ -20,25 +20,12 @@ type SlotOption = {
   timeLabel: string;
 };
 
-const dateLabelFormat = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  timeZone: "UTC",
-});
-const timeLabelFormat = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "UTC",
-});
-
 function toSlotOption(slot: BookingSlot): SlotOption {
-  const date = new Date(slot.startsAt);
   return {
     startsAt: slot.startsAt,
     dateKey: slot.startsAt.slice(0, 10),
-    dateLabel: dateLabelFormat.format(date),
-    timeLabel: timeLabelFormat.format(date),
+    dateLabel: formatSlotShortDay(slot.startsAt) ?? "",
+    timeLabel: formatSlotTime(slot.startsAt) ?? "",
   };
 }
 
