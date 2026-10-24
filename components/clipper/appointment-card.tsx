@@ -1,12 +1,15 @@
 import {
   CalendarDays,
   Check,
+  CheckCheck,
   Clock3,
   Dog,
+  Hourglass,
   MapPin,
   Scissors,
   StickyNote,
   UserRound,
+  X,
 } from "lucide-react";
 
 import { formatPrice, formatSlotDate, formatSlotTime } from "@/lib/clipper/format";
@@ -62,6 +65,13 @@ const statusLabels: Record<string, { label: string; className: string }> = {
   },
 };
 
+const statusIcons: Record<string, typeof Check> = {
+  confirmed: Check,
+  completed: CheckCheck,
+  cancelled: X,
+  pending: Hourglass,
+};
+
 function formatTotal(priceCents: number | null | undefined) {
   if (typeof priceCents !== "number") return "Price to be confirmed";
   return formatPrice(priceCents);
@@ -74,6 +84,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
     label: details.status ?? "Booked",
     className: "border-[#cbd8ff] bg-[#eef1ff] text-[#4353a3]",
   };
+  const StatusIcon = statusIcons[details.status ?? ""] ?? Check;
   const appointmentDate = formatSlotDate(details.startsAt) ?? "Date to be confirmed";
   const startTime = formatSlotTime(details.startsAt) ?? "Time to be confirmed";
   const endTime = formatSlotTime(details.endsAt) ?? "Time to be confirmed";
@@ -92,7 +103,7 @@ export function AppointmentCard({ appointment }: AppointmentCardProps) {
             </h2>
           </div>
           <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${status.className}`}>
-            <Check aria-hidden="true" className="size-3.5" strokeWidth={3} />
+            <StatusIcon aria-hidden="true" className="size-3.5" strokeWidth={3} />
             {status.label}
           </span>
         </div>
