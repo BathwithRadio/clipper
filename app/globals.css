@@ -108,10 +108,12 @@ a {
    Unlayered rules win over Tailwind's utilities layer. */
 :root {
   --clipper-ink: #0a2540;
+  --clipper-rule: #dbe3ef;
 }
 
 .dark {
   --clipper-ink: #e6edf7;
+  --clipper-rule: #22304a;
 }
 
 .dark body {
@@ -130,6 +132,11 @@ a {
 .dark .text-\[\#53627a\] { color: #a0aec0; }
 .dark .text-\[\#8898aa\] { color: #7c8aa0; }
 .dark .hover\:text-\[\#635bff\]:hover { color: #8f88ff; }
+.dark .text-\[\#635bff\] { color: #8f88ff; }
+.dark .hover\:text-\[\#0a2540\]:hover { color: #e6edf7; }
+.dark .hover\:bg-\[\#0a2540\]:hover { background-color: #1b2a48; }
+.dark .hover\:bg-\[\#eef1ff\]:hover { background-color: #1e2550; }
+.dark .hover\:bg-\[\#fff0ef\]:hover { background-color: #3d1a18; }
 
 .dark .border-\[\#dbe3ef\],
 .dark .border-\[\#e6ebf1\],
