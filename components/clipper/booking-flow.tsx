@@ -12,7 +12,11 @@ import { BOOKING_MAX_LENGTHS, type BookingOption, type BookingSlot } from "@/lib
 import { cn } from "@/lib/utils";
 
 const labelClass = "text-xs font-bold text-[#53627a]";
-const inputClass = "mt-2 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]";
+const inputClass = "mt-2 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff] aria-invalid:border-[#f3aaa0]";
+
+const FIELD_ORDER = ["petName", "petBreed", "package", "address", "neighborhood", "slot"] as const;
+type Field = (typeof FIELD_ORDER)[number];
+type FieldErrors = Partial<Record<Field, string>>;
 
 type SlotOption = {
   startsAt: string;
@@ -50,6 +54,17 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const [selectedSlotId, setSelectedSlotId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  // Props for an input that may carry a field error: stable id, aria-invalid, and a link to the message.
+  const fieldProps = (field: Field) => ({
+    id: `${sectionId}-${field}`,
+    "aria-invalid": fieldErrors[field] ? true : undefined,
+    "aria-describedby": fieldErrors[field] ? `${sectionId}-${field}-error` : undefined,
+  });
+  const fieldError = (field: Field) =>
+    fieldErrors[field] ? <span id={`${sectionId}-${field}-error`} className="mt-1.5 block text-xs font-semibold text-[#9f3f38]">{fieldErrors[field]}</span> : null;
+  const clearError = (field: Field) => setFieldErrors(({ [field]: _removed, ...rest }) => rest);
 
   const { slots, groups: groupedSlots } = useMemo(() => groupSlots(options.slots), [options.slots]);
   const selectedPackage = options.packages.find((pkg) => pkg.id === selectedPackageId);
@@ -61,8 +76,18 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
   const totalLabel = selectedPackage ? formatPrice(selectedPackage.priceCents) : "—";
 
   function validateAndSubmit() {
-    if (!petName.trim() || !petBreed || !selectedPackageId || !selectedNeighborhood || !address.trim() || !selectedSlot) {
-      setFormError("Please complete each step before booking your Clipper visit.");
+    const errors: FieldErrors = {};
+    if (!petName.trim()) errors.petName = "Tell us your pet’s name.";
+    if (!petBreed) errors.petBreed = "Choose a breed.";
+    if (!selectedPackageId) errors.package = "Choose a service.";
+    if (!address.trim()) errors.address = "Enter the street address.";
+    if (!selectedNeighborhood) errors.neighborhood = "Choose a neighborhood.";
+    if (!selectedSlot) errors.slot = "Pick an arrival time.";
+    setFieldErrors(errors);
+    const firstInvalid = FIELD_ORDER.find((field) => errors[field]);
+    if (firstInvalid || !selectedSlot) {
+      setFormError("Please fix the highlighted fields before booking your Clipper visit.");
+      document.getElementById(`${sectionId}-${firstInvalid}`)?.focus();
       return;
     }
     setSubmitting(true);
@@ -99,22 +124,23 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
           <div className="overflow-hidden rounded-2xl border border-[#dbe3ef] bg-white shadow-[0_32px_90px_rgb(38_46_77/12%)]">
             <form noValidate onSubmit={(event) => { event.preventDefault(); validateAndSubmit(); }} className="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
               <div className="space-y-10 p-5 sm:p-8 lg:p-10">
-                {formError ? <Alert className="border-[#f3aaa0] bg-[#fff3f0] text-[#8f3d30]"><AlertDescription>{formError}</AlertDescription></Alert> : null}
+                {formError ? <Alert role="alert" className="border-[#f3aaa0] bg-[#fff3f0] text-[#8f3d30]"><AlertDescription>{formError}</AlertDescription></Alert> : null}
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>1. Who are we grooming?</legend>
-                  <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold text-[#53627a]">Pet name<Input name="petName" autoComplete="off" required maxLength={BOOKING_MAX_LENGTHS.petName} value={petName} onChange={(event) => setPetName(event.target.value)} placeholder="e.g. Luna" className="mt-2 h-12 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff]" /></label><label className="text-xs font-bold text-[#53627a]">Breed<select name="petBreed" required value={petBreed} onChange={(event) => setPetBreed(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a breed</option><option>Golden Retriever</option><option>Labrador Retriever</option><option>French Bulldog</option><option>German Shepherd</option><option>Poodle</option><option>Miniature Poodle</option><option>Pomeranian</option><option>Pug</option><option>Chihuahua</option><option>Shiba Inu</option><option>Welsh Corgi</option><option>Yorkshire Terrier</option><option>Mixed Breed</option></select></label></div>
+                  <div className="grid gap-3 sm:grid-cols-2"><label className="text-xs font-bold text-[#53627a]">Pet name<Input name="petName" autoComplete="off" required maxLength={BOOKING_MAX_LENGTHS.petName} {...fieldProps("petName")} value={petName} onChange={(event) => { setPetName(event.target.value); clearError("petName"); }} placeholder="e.g. Luna" className="mt-2 h-12 rounded-md border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] focus-visible:ring-[#635bff] aria-invalid:border-[#f3aaa0]" />{fieldError("petName")}</label><label className="text-xs font-bold text-[#53627a]">Breed<select name="petBreed" required {...fieldProps("petBreed")} value={petBreed} onChange={(event) => { setPetBreed(event.target.value); clearError("petBreed"); }} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff] aria-invalid:border-[#f3aaa0]"><option value="">Choose a breed</option><option>Golden Retriever</option><option>Labrador Retriever</option><option>French Bulldog</option><option>German Shepherd</option><option>Poodle</option><option>Miniature Poodle</option><option>Pomeranian</option><option>Pug</option><option>Chihuahua</option><option>Shiba Inu</option><option>Welsh Corgi</option><option>Yorkshire Terrier</option><option>Mixed Breed</option></select>{fieldError("petBreed")}</label></div>
                 </fieldset>
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>2. Choose a service</legend>
-                  <div className="divide-y divide-[#e6ebf1] border-y border-[#e6ebf1]">{options.packages.map((pkg) => <button type="button" key={pkg.id} aria-pressed={selectedPackageId === pkg.id} onClick={() => { setSelectedPackageId(pkg.id); setFormError(""); }} className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md px-1 sm:gap-5 py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]",selectedPackageId === pkg.id ? "" : "opacity-70 hover:opacity-100")}><span><span className="flex items-center gap-2 font-bold" style={{ color: ink }}><span className="size-2 rounded-full" style={{ background: selectedPackageId === pkg.id ? accent : "#dbe3ef" }} />{pkg.name}</span><span className="mt-1 block pl-4 text-xs leading-5 text-[#8898aa]">{pkg.description}</span></span><span className="text-right"><span className="block font-bold" style={{ color: ink }}>{formatPrice(pkg.priceCents)}</span><span className="text-xs text-[#8898aa]">{pkg.durationMinutes} min</span></span></button>)}</div>
+                  <div className="divide-y divide-[#e6ebf1] border-y border-[#e6ebf1]">{options.packages.map((pkg, index) => <button type="button" key={pkg.id} id={index === 0 ? `${sectionId}-package` : undefined} aria-pressed={selectedPackageId === pkg.id} onClick={() => { setSelectedPackageId(pkg.id); setFormError(""); clearError("package"); }} className={cn("grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md px-1 sm:gap-5 py-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#635bff]",selectedPackageId === pkg.id ? "" : "opacity-70 hover:opacity-100")}><span><span className="flex items-center gap-2 font-bold" style={{ color: ink }}><span className="size-2 rounded-full" style={{ background: selectedPackageId === pkg.id ? accent : "#dbe3ef" }} />{pkg.name}</span><span className="mt-1 block pl-4 text-xs leading-5 text-[#8898aa]">{pkg.description}</span></span><span className="text-right"><span className="block font-bold" style={{ color: ink }}>{formatPrice(pkg.priceCents)}</span><span className="text-xs text-[#8898aa]">{pkg.durationMinutes} min</span></span></button>)}</div>
                   {noPackages && <CallUsNotice>Services are temporarily unavailable.</CallUsNotice>}
+                  {fieldError("package")}
                 </fieldset>
 
                 <fieldset>
                   <legend className="mb-4 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>3. Where should we arrive?</legend>
-                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input name="address" autoComplete="street-address" required maxLength={BOOKING_MAX_LENGTHS.address} value={address} onChange={(event) => setAddress(event.target.value)} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} /></label><label className={labelClass}>Neighborhood<select name="neighborhood" required value={selectedNeighborhood} onChange={(event) => setSelectedNeighborhood(event.target.value)} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select></label></div>
+                  <div className="grid gap-3 sm:grid-cols-[1.25fr_0.75fr]"><label className={labelClass}>Street address<Input name="address" autoComplete="street-address" required maxLength={BOOKING_MAX_LENGTHS.address} {...fieldProps("address")} value={address} onChange={(event) => { setAddress(event.target.value); clearError("address"); }} placeholder="e.g. 42 Itaewon-ro" className={cn("h-12", inputClass)} />{fieldError("address")}</label><label className={labelClass}>Neighborhood<select name="neighborhood" required {...fieldProps("neighborhood")} value={selectedNeighborhood} onChange={(event) => { setSelectedNeighborhood(event.target.value); clearError("neighborhood"); }} className="mt-2 h-12 w-full rounded-md border border-[#dbe3ef] bg-white px-4 text-base font-normal text-[#0a2540] outline-none focus:border-[#635bff] aria-invalid:border-[#f3aaa0]"><option value="">Choose a neighborhood</option>{options.neighborhoods.map((neighborhood) => <option key={neighborhood} value={neighborhood}>{neighborhood}</option>)}</select>{fieldError("neighborhood")}</label></div>
                   {noNeighborhoods && <CallUsNotice className="mt-3">We&apos;re not serving any neighborhoods right now.</CallUsNotice>}
                   <label className={cn("mt-3 block", labelClass)}>Apartment, floor, or gate code <span className="font-normal">(optional)</span><Input name="unit" autoComplete="address-line2" maxLength={BOOKING_MAX_LENGTHS.unit} value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="e.g. 1203호, gate #4821" className={cn("h-11", inputClass)} /></label>
                 </fieldset>
@@ -122,7 +148,8 @@ export function BookingFlow({ options, sectionId = "book", theme = { ink: "var(-
                 <fieldset>
                   <legend className="mb-1 text-lg font-bold tracking-[-0.025em]" style={{ color: ink }}>4. Pick an arrival time</legend>
                   <p className="mb-4 text-xs text-[#8898aa]">All times KST · matched against live groomer routes</p>
-                  <div className="grid gap-5 sm:grid-cols-2">{Object.entries(groupedSlots).map(([dateKey, dateSlots]) => <div key={dateKey}><p className="mb-2 text-sm font-bold" style={{ color: ink }}>{dateSlots[0]?.dateLabel}</p><div className="grid grid-cols-2 gap-2">{dateSlots.map((slot) => <button type="button" key={slot.startsAt} aria-pressed={selectedSlotId === slot.startsAt} aria-label={`${slot.dateLabel}, ${slot.timeLabel}`} onClick={() => { setSelectedSlotId(slot.startsAt); setFormError(""); }} className={cn("rounded-md border px-3 py-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-[#635bff] focus-visible:ring-offset-2",selectedSlotId === slot.startsAt ? "text-white" : "border-[#dbe3ef] bg-white text-[#425466]")} style={selectedSlotId === slot.startsAt ? { background: accent, borderColor: accent } : undefined}>{slot.timeLabel}</button>)}</div></div>)}{slots.length ? null : <p className="text-sm text-[#53627a]">No routes are open this week yet.</p>}</div>
+                  <div className="grid gap-5 sm:grid-cols-2">{Object.entries(groupedSlots).map(([dateKey, dateSlots]) => <div key={dateKey}><p className="mb-2 text-sm font-bold" style={{ color: ink }}>{dateSlots[0]?.dateLabel}</p><div className="grid grid-cols-2 gap-2">{dateSlots.map((slot) => <button type="button" key={slot.startsAt} id={slot.startsAt === slots[0]?.startsAt ? `${sectionId}-slot` : undefined} aria-pressed={selectedSlotId === slot.startsAt} aria-label={`${slot.dateLabel}, ${slot.timeLabel}`} onClick={() => { setSelectedSlotId(slot.startsAt); setFormError(""); clearError("slot"); }} className={cn("rounded-md border px-3 py-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-[#635bff] focus-visible:ring-offset-2",selectedSlotId === slot.startsAt ? "text-white" : "border-[#dbe3ef] bg-white text-[#425466]")} style={selectedSlotId === slot.startsAt ? { background: accent, borderColor: accent } : undefined}>{slot.timeLabel}</button>)}</div></div>)}{slots.length ? null : <p className="text-sm text-[#53627a]">No routes are open this week yet.</p>}</div>
+                  {fieldError("slot")}
                 </fieldset>
               </div>
 
