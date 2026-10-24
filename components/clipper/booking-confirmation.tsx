@@ -2,6 +2,7 @@ import { Check, Heart, Hourglass, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 
 import { formatSlotDay } from "@/lib/clipper/format";
+import { getStatusStyle } from "@/lib/clipper/status";
 import type { AppointmentDetails } from "@/lib/clipper/types";
 
 type BookingConfirmationProps = {
@@ -14,13 +15,6 @@ type ConfirmationDetails = {
   startsAt?: Date | number | string | null;
   status?: string | null;
   pet?: { name?: string | null } | null;
-};
-
-const statusLabels: Record<string, string> = {
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  pending: "Pending",
 };
 
 /** Banner icon and wording for the visit's status. Cancelled wins, then completed or past, then pending. */
@@ -40,7 +34,7 @@ function getCopy(status: string | null | undefined, isPast: boolean, petName: st
 export function BookingConfirmation({ appointment }: BookingConfirmationProps) {
   const details = appointment as unknown as ConfirmationDetails;
   const petName = details.pet?.name ?? "your pet";
-  const status = statusLabels[details.status ?? ""] ?? "Booked";
+  const status = getStatusStyle(details.status).label;
   // A visit with no start date is treated as upcoming.
   const isPast = details.startsAt ? new Date(details.startsAt).getTime() <= Date.now() : false;
   const copy = getCopy(details.status, isPast, petName, formatSlotDay(details.startsAt) ?? "your chosen day");
