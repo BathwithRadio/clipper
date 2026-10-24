@@ -7,6 +7,7 @@ import {
 } from "@/db/schema";
 import { findAvailableGroomer } from "@/lib/clipper/data";
 import { getDatabase } from "@/lib/clipper/db";
+import { BOOKING_MAX_LENGTHS } from "@/lib/clipper/types";
 
 type BookingRequest = {
   petName?: unknown;
@@ -65,21 +66,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const maxLengths = { petName: 40, address: 120 } as const;
-  const tooLong = (Object.keys(maxLengths) as (keyof typeof maxLengths)[]).find(
-    (field) => (input[field] as string).trim().length > maxLengths[field],
-  );
-
-  if (tooLong) {
-    return Response.json(
-      {
-        ok: false,
-        error: `${tooLong} must be at most ${maxLengths[tooLong]} characters.`,
-      },
-      { status: 400 },
-    );
-  }
-
   const petName = input.petName as string;
   const petBreed = input.petBreed as string;
   const packageId = input.packageId as string;
@@ -88,6 +74,16 @@ export async function POST(request: Request) {
   // No separate column yet: keep the unit on the address line the groomer reads.
   const address = [(input.address as string).trim(), unit].filter(Boolean).join(", ");
   const startsAt = new Date(input.startsAt as string);
+
+  for (const [field, value] of [["petName", petName], ["address", address]] as const) {
+    const max = BOOKING_MAX_LENGTHS[field];
+    if (value.trim().length > max) {
+      return Response.json(
+        { ok: false, error: `${field} must be at most ${max} characters.` },
+        { status: 400 },
+      );
+    }
+  }
 
   if (Number.isNaN(startsAt.getTime())) {
     return Response.json(
