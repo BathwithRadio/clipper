@@ -14,6 +14,7 @@ type BookingRequest = {
   packageId?: unknown;
   neighborhood?: unknown;
   address?: unknown;
+  unit?: unknown;
   startsAt?: unknown;
 };
 
@@ -68,7 +69,9 @@ export async function POST(request: Request) {
   const petBreed = input.petBreed as string;
   const packageId = input.packageId as string;
   const neighborhood = input.neighborhood as string;
-  const address = input.address as string;
+  const unit = typeof input.unit === "string" ? input.unit.trim() : "";
+  // No separate column yet: keep the unit on the address line the groomer reads.
+  const address = [(input.address as string).trim(), unit].filter(Boolean).join(", ");
   const startsAt = new Date(input.startsAt as string);
 
   if (Number.isNaN(startsAt.getTime())) {
